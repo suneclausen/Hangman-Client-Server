@@ -22,35 +22,39 @@ public class Server
         {
             listenForNewClients(port); //TODO: Consider making threaded and be able to handle multiple clients.
 
-            String line = "";
-
-            // reads message from client until "Over" is sent
-            while (!line.equals("STOP"))
-            {
-                try
-                {
-                    line = in.readUTF();
-                    System.out.println(line);
-
-                    outputStream.writeUTF(counter++ + " svar på besked: " + line);
-
-                }
-                catch(IOException i)
-                {
-                    System.out.println(i);
-                }
-            }
-            System.out.println("Closing connection");
-
-            // close connection
-            socket.close();
-            in.close();
-            input.close();
+            listenForClientMessage(); // Main Thread. Has a while(true) loop
         }
         catch(IOException i)
         {
             System.out.println(i);
         }
+    }
+
+    private void listenForClientMessage() throws IOException {
+        String line = "";
+
+        // reads message from client until "STOP" is sent
+        while (!line.equals("STOP"))
+        {
+            try
+            {
+                line = in.readUTF();
+                System.out.println(line);
+
+                outputStream.writeUTF(counter++ + " svar på besked: " + line);
+
+            }
+            catch(IOException i)
+            {
+                System.out.println(i);
+            }
+        }
+        System.out.println("Closing connection");
+
+        // close connection
+        socket.close();
+        in.close();
+        input.close();
     }
 
     private void listenForNewClients(int port) throws IOException {
