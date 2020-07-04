@@ -10,6 +10,7 @@ public class Server
     private ServerSocket server = null;
     private DataInputStream in	 = null;
     private DataInputStream input = null;
+    private DataOutputStream outputStream = null;
 
     private int counter = 0;
 
@@ -19,20 +20,7 @@ public class Server
         // starts server and waits for a connection
         try
         {
-            server = new ServerSocket(port);
-            System.out.println("Server started");
-
-            System.out.println("Waiting for a client ...");
-
-            socket = server.accept();
-            System.out.println("Client accepted");
-
-            // takes input from the client socket
-            in = new DataInputStream(
-                    new BufferedInputStream(socket.getInputStream()));
-
-            // takes input from terminal
-            input = new DataInputStream(System.in); //TODO: Do we need this.
+            listenForNewClients(port); //TODO: Consider making threaded and be able to handle multiple clients.
 
             String line = "";
 
@@ -44,12 +32,7 @@ public class Server
                     line = in.readUTF();
                     System.out.println(line);
 
-                    OutputStream outputStream = socket.getOutputStream();
-                    DataOutputStream o = new DataOutputStream(outputStream);
-//                    if (line.equals("makeResponse")){
-//                        o.writeUTF("Dette er en respons fra din server, man! ");
-//                    }
-                    o.writeUTF(counter++ + " svar på besked: " + line);
+                    outputStream.writeUTF(counter++ + " svar på besked: " + line);
 
                 }
                 catch(IOException i)
@@ -68,6 +51,27 @@ public class Server
         {
             System.out.println(i);
         }
+    }
+
+    private void listenForNewClients(int port) throws IOException {
+        server = new ServerSocket(port);
+        System.out.println("Server started");
+
+        System.out.println("Waiting for a client ...");
+
+        socket = server.accept();
+        System.out.println("Client accepted");
+
+        // takes input from the client socket
+        in = new DataInputStream(
+                new BufferedInputStream(socket.getInputStream()));
+
+        // takes input from terminal
+        input = new DataInputStream(System.in); //TODO: Do we need this.
+
+        // output stream for returning msg to client that send the message.
+        outputStream = new DataOutputStream(socket.getOutputStream());
+
     }
 
 
