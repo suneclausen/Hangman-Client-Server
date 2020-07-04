@@ -1,6 +1,11 @@
 package secondTry;
 // A Java program for a Client
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
+import hangmanGame.Hangman;
+import org.json.JSONObject;
+
+import javax.json.Json;
 import java.net.*;
 import java.io.*;
 
@@ -10,6 +15,7 @@ public class Client {
     private DataInputStream input = null;
     private DataInputStream in = null;
     private DataOutputStream out = null;
+    private String ipPort = null;
 
     private boolean isStopMsgSent;
 
@@ -32,11 +38,30 @@ public class Client {
         // string to read message from input
         String line = "";
 
-        // keep reading until "Over" is input
+        // keep reading until "STOP" is input
         while (!line.equals("STOP")) {
             try {
                 line = input.readLine();
-                out.writeUTF(line);
+                String[] split = line.split(";");
+                String msgType = split[0];
+                String content = split[1];
+                switch (msgType.trim()) {
+                    case Constants.START_GAME:
+                        out.writeUTF(createPayload(msgType, content));
+                        break;
+                    case Constants.GUESS:
+                        if (Hangman.checkInput(content)){ //TODO; Maybe not have this logic here and go for an isolated bahaviour?
+                            out.writeUTF(createPayload(Constants.GUESS, content));
+                        }else{
+                            System.out.println("ERROR: Wrongly formatted input");
+                        }
+                        break;
+                    case Constants.JOIN_GAME:
+                        //TODO
+                        break;
+                }
+
+//                out.writeUTF(line);
 
             } catch (IOException i) {
                 System.out.println(i);
@@ -54,6 +79,14 @@ public class Client {
         } catch (IOException i) {
             System.out.println(i);
         }
+    }
+
+    private String createPayload(String msgType, String payLoadValue) {
+        return Json.createObjectBuilder()
+                .add("msg", msgType)
+                .add("content", payLoadValue)
+                .build()
+                .toString();
     }
 
     private void listenForServerMessages() {
@@ -86,6 +119,7 @@ public class Client {
 
         in = new DataInputStream(socket.getInputStream());
     }
+
 
     public static void main(String args[]) {
         Client client = new Client("127.0.0.1", 5000);
