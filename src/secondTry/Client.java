@@ -51,14 +51,18 @@ public class Client {
                         out.writeUTF(createPayload(msgType, content, ""));
                         break;
                     case Constants.GUESS:
-                        if (GameUtility.checkInput(content.toUpperCase())){ //TODO; Maybe not have this logic here and go for an isolated bahaviour?
+                        if (GameUtility.checkInput(content.toUpperCase())) { //TODO; Maybe not have this logic here and go for an isolated bahaviour?
                             out.writeUTF(createPayload(Constants.GUESS, content, currentGameId));
-                        }else{
+                        } else {
                             System.out.println("ERROR: Wrongly formatted input");
                         }
                         break;
                     case Constants.BURN:
+                        // For BURNING turn
                         out.writeUTF(createPayload(Constants.BURN, "", currentGameId));
+                        break;
+                    case Constants.NEW_WORD:
+                        out.writeUTF(createPayload(Constants.NEW_WORD, content, currentGameId));
                         break;
                     case Constants.JOIN_GAME:
                         //TODO
@@ -108,11 +112,11 @@ public class Client {
                         String returnMsg = jsonResponse.getString("returnMsg");
                         System.out.println("From server: " + returnMsg);
 
-                        if (jsonResponse.has("gameid")){
+                        if (jsonResponse.has("gameid")) {
                             currentGameId = jsonResponse.getString("gameid");
                         }
                     }
-                } catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

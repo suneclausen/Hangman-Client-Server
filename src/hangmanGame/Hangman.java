@@ -37,6 +37,14 @@ public class Hangman {
         return life;
     }
 
+    public void setGuessedLetters(TreeSet<String> guessedLetters) {
+        this.guessedLetters = guessedLetters;
+    }
+
+    public void setLife(int life) {
+        this.life = life;
+    }
+
     public String getWordToGuess() {
         return wordToGuess;
     }

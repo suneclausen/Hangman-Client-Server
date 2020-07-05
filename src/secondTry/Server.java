@@ -90,8 +90,16 @@ public class Server {
                 String content = json.getString("content");
                 String givenGameid = json.getString("gameid");
 
-//                outputStream.writeUTF(counter++ + " svar på besked: " + line);
+                boolean isInputValid;
+
                 switch (msg) {
+                    case Constants.NEW_WORD:
+                        isInputValid = validateInput(clientName, outputStream, content, givenGameid);
+                        if (isInputValid){
+                            games.get(givenGameid).startNewGame(content);
+                        }
+
+                        break;
                     case Constants.START_GAME:
                         createGame(content, socket, outputStream);
                         break;
@@ -100,61 +108,14 @@ public class Server {
                         break;
                     case Constants.GUESS:
                         //Handle guess to a specific game from a specific user.
-                        if (givenGameid == null) {
-                            outputStream.writeUTF(errorMsg("No game id provided"));
-                            break;
+                        // Setter will update variable that threads look at to decide whether or not to do stuff
+                        isInputValid = validateInput(clientName, outputStream, content, givenGameid);
+                        if (isInputValid){
+                            games.get(givenGameid).setLastGuessGiven(content.toUpperCase());
                         }
-                        if (!games.containsKey(givenGameid) && !clientGame.containsKey(clientName)){ //TODO: Could ask if the given game id corresponds to what we have saved for secureity measure
-                            outputStream.writeUTF(errorMsg("The gameId does not exist or you are not signed up to any game"));
-                            break;
-                        }
-                        if (games.get(givenGameid).getPlayers().size() <= 1){
-                            /// too few to play game
-                            outputStream.writeUTF(errorMsg("Too few players to game: " + givenGameid + ". Needs at least two players"));
-                            break;
-                        }
-                        if (!GameUtility.getClientName(games.get(givenGameid).getCurrentPlayer()).equals(clientName)){
-                            // It is not the turn of this client yet.
-                            outputStream.writeUTF(errorMsg("It is not your turn yet"));
-                            break;
-                        }
-                        if (games.get(givenGameid).getGame().getGuessedLetters().contains(content)){
-                            outputStream.writeUTF(errorMsg("We have already guessed on that letter:" + content));
-                            break;
-                        }
-
-                        games.get(givenGameid).setLastGuessGiven(content.toUpperCase());
-//                        handleGuess(content, givenGameid, outputStream);
                         break;
                     case Constants.JOIN_GAME:
-                        // Handle logic for entering game
-                        String gameIdToJoin = content;
-
-                        if (games.containsKey(gameIdToJoin)) {
-                            //See id already in one game. Remove if so
-                            if (clientGame.containsKey(clientName)) {
-                                String prevGameId = clientGame.get(clientName);
-                                outputStream.writeUTF(createReturnMsg("Removed you from other game that you had joined with id:" + prevGameId));
-                                clientGame.remove(clientName);
-                            }
-
-                            // Set
-                            GameSetUp gameSetUp = games.get(gameIdToJoin);
-                            gameSetUp.addPlayer(socket);
-                            clientGame.put(clientName, gameIdToJoin);
-
-                            outputStream.writeUTF(
-                                    Json.createObjectBuilder()
-                                            .add("returnMsg", "SUCCES in joining game with id:" + gameIdToJoin)
-                                            .add("gameid", gameIdToJoin)
-                                            .build()
-                                            .toString()
-                            );
-                        } else {
-                            outputStream.writeUTF(errorMsg("Game with id:" + gameIdToJoin + " does not exist."));
-                        }
-
-
+                        handeJoinGame(socket, clientName, outputStream, content);
                         break;
                     default:
                         // Client msg was not legal json
@@ -174,21 +135,60 @@ public class Server {
         input.close();
     }
 
-
-    private void handleGuess(String content, String givenGameid, DataOutput outputStream) throws IOException {
-        GameSetUp gameSetUp = games.get(givenGameid);
-        Hangman game = gameSetUp.getGame();
-        String response = game.handleGuess(content);
-        if (response.contains(Constants.WIN_MSG)) {
-            //TODO: HANDLE WHO GET THE WIN AND LOSE MESSAGE: ALso make it possible to restart game.
-            outputStream.writeUTF(createReturnMsg(response));
-        } else if (response.contains(Constants.LOSE_MSG)) {
-            //TODO:
-            outputStream.writeUTF(createReturnMsg(response));
+    private boolean validateInput(String clientName, DataOutputStream outputStream, String content, String givenGameid) throws IOException {
+        // Defensive meausres on input and which user does what
+        if (givenGameid == null) {
+            outputStream.writeUTF(errorMsg("No game id provided"));
+            return false;
         }
-//                        games.put(givenGameid, game); //TODo do not now know if reference are updated
-        outputStream.writeUTF(createReturnMsg(response));
+        if (!games.containsKey(givenGameid) && !clientGame.containsKey(clientName)){ //TODO: Could ask if the given game id corresponds to what we have saved for secureity measure
+            outputStream.writeUTF(errorMsg("The gameId does not exist or you are not signed up to any game"));
+            return false;
+        }
+        if (games.get(givenGameid).getPlayers().size() <= 1){
+            /// too few to play game
+            outputStream.writeUTF(errorMsg("Too few players to game: " + givenGameid + ". Needs at least two players"));
+            return false;
+        }
+        if (!GameUtility.getClientName(games.get(givenGameid).getCurrentPlayer()).equals(clientName)){
+            // It is not the turn of this client yet.
+            outputStream.writeUTF(errorMsg("It is not your turn yet"));
+            return false;
+        }
+        if (games.get(givenGameid).getGame().getGuessedLetters().contains(content)){
+            outputStream.writeUTF(errorMsg("We have already guessed on that letter:" + content));
+            return false;
+        }
+
+        return true;
     }
+
+    private void handeJoinGame(Socket socket, String clientName, DataOutputStream outputStream, String gameIdToJoin) throws IOException {
+        if (games.containsKey(gameIdToJoin)) {
+            if (clientGame.containsKey(clientName)) {
+                //See if id already is in one game. Remove if so
+                String prevGameId = clientGame.get(clientName);
+                outputStream.writeUTF(createReturnMsg("Removed you from other game that you had joined with id:" + prevGameId));
+                clientGame.remove(clientName);
+                games.get(prevGameId).removePlayer(clientName);
+            }
+
+            // Set
+            games.get(gameIdToJoin).addPlayer(socket);
+            clientGame.put(clientName, gameIdToJoin);
+
+            outputStream.writeUTF(
+                    Json.createObjectBuilder()
+                            .add("returnMsg", "SUCCES in joining game with id:" + gameIdToJoin)
+                            .add("gameid", gameIdToJoin)
+                            .build()
+                            .toString()
+            );
+        } else {
+            outputStream.writeUTF(errorMsg("Game with id:" + gameIdToJoin + " does not exist."));
+        }
+    }
+
 
     private String createReturnMsg(String response) {
         return Json.createObjectBuilder()
