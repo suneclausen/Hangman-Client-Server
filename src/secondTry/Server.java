@@ -95,7 +95,7 @@ public class Server {
                 switch (msg) {
                     case Constants.NEW_WORD:
                         isInputValid = validateInput(clientName, outputStream, content, givenGameid);
-                        if (isInputValid){
+                        if (isInputValid) {
                             games.get(givenGameid).startNewGame(content);
                         }
 
@@ -110,7 +110,7 @@ public class Server {
                         //Handle guess to a specific game from a specific user.
                         // Setter will update variable that threads look at to decide whether or not to do stuff
                         isInputValid = validateInput(clientName, outputStream, content, givenGameid);
-                        if (isInputValid){
+                        if (isInputValid) {
                             games.get(givenGameid).setLastGuessGiven(content.toUpperCase());
                         }
                         break;
@@ -141,21 +141,21 @@ public class Server {
             outputStream.writeUTF(errorMsg("No game id provided"));
             return false;
         }
-        if (!games.containsKey(givenGameid) && !clientGame.containsKey(clientName)){ //TODO: Could ask if the given game id corresponds to what we have saved for secureity measure
+        if (!games.containsKey(givenGameid) && !clientGame.containsKey(clientName)) { //TODO: Could ask if the given game id corresponds to what we have saved for secureity measure
             outputStream.writeUTF(errorMsg("The gameId does not exist or you are not signed up to any game"));
             return false;
         }
-        if (games.get(givenGameid).getPlayers().size() <= 1){
+        if (games.get(givenGameid).getPlayers().size() <= 1) {
             /// too few to play game
             outputStream.writeUTF(errorMsg("Too few players to game: " + givenGameid + ". Needs at least two players"));
             return false;
         }
-        if (!GameUtility.getClientName(games.get(givenGameid).getCurrentPlayer()).equals(clientName)){
+        if (!GameUtility.getClientName(games.get(givenGameid).getCurrentPlayer()).equals(clientName)) {
             // It is not the turn of this client yet.
             outputStream.writeUTF(errorMsg("It is not your turn yet"));
             return false;
         }
-        if (games.get(givenGameid).getGame().getGuessedLetters().contains(content)){
+        if (games.get(givenGameid).getGame().getGuessedLetters().contains(content)) {
             outputStream.writeUTF(errorMsg("We have already guessed on that letter:" + content));
             return false;
         }

@@ -110,7 +110,7 @@ public class Hangman {
 
         // you dead
         if (life == 0) {
-            return  Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess;
+            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess;
         }
         return formattedGuessLine.toString() + "\nALready guessed letters: " + guessedLetters.toString() + "\nLives left: " + life;
     }

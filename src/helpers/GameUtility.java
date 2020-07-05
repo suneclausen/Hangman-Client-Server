@@ -4,17 +4,17 @@ import java.net.Socket;
 
 public class GameUtility {
 
-    public static String getClientName(Socket socket){
+    public static String getClientName(Socket socket) {
         return socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
     }
 
     //Check the letter input and see if it is legal. Returns true if it is.
     public static boolean checkInput(String input) {
         String legalInput = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
-        if  (input.length() > 1) {
+        if (input.length() > 1) {
             System.out.println("Only insert one letter at a time - has to be an english letter");
             return false;
-        }else if (legalInput.contains(input)) {
+        } else if (legalInput.contains(input)) {
             return true;
         }
 

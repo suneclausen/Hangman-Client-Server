@@ -45,7 +45,7 @@ public class GameSetUp {
             @Override
             public void run() {
                 stopBuffer = true;
-                while(true){
+                while (true) {
                     if (isGameDone && stopBuffer) {
                         try {
                             owner = currentPlayer;
