@@ -9,6 +9,8 @@ import java.util.TreeSet;
 public class Hangman {
     private static String[] sketch = initHangmanSketchArray();
 
+    private String owner;
+    private String gameId;
     private String wordToGuess;
     private TreeSet<String> guessedLetters;
     private int life = 8;
@@ -17,6 +19,18 @@ public class Hangman {
         this.wordToGuess = wordToGuess.toUpperCase();
         guessedLetters = new TreeSet<>();
         this.life = 8;
+    }
+
+    public Hangman(String wordToGuess, String owner, String gameId) {
+        this.owner = owner;
+        this.gameId = gameId;
+        this.wordToGuess = wordToGuess.toUpperCase();
+        guessedLetters = new TreeSet<>();
+        this.life = 8;
+    }
+
+    public String getGameId() {
+        return gameId;
     }
 
     public int getLife() {
@@ -33,6 +47,14 @@ public class Hangman {
 
     public TreeSet<String> getGuessedLetters() {
         return guessedLetters;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public String handleGuess(String guessLetter) {
@@ -80,7 +102,7 @@ public class Hangman {
 
         // you dead
         if (life == 0) {
-            return "---------- You lost! You ran out of lives! ---------- \n" + "The correct word was: " + wordToGuess;
+            return  Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess;
         }
         return formattedGuessLine.toString() + "\nALready guessed letters: " + guessedLetters.toString() + "\nLives left: " + life;
     }

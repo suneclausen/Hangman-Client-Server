@@ -1,7 +1,6 @@
 package secondTry;
 // A Java program for a Client
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import hangmanGame.Hangman;
 import org.json.JSONObject;
 
@@ -18,6 +17,7 @@ public class Client {
     private String ipPort = null;
 
     private boolean isStopMsgSent;
+    private String currentGameId;
 
     // constructor to put ip address and port
     public Client(String address, int port) {
@@ -47,17 +47,19 @@ public class Client {
                 String content = split[1];
                 switch (msgType.trim()) {
                     case Constants.START_GAME:
-                        out.writeUTF(createPayload(msgType, content));
+                        out.writeUTF(createPayload(msgType, content, ""));
                         break;
                     case Constants.GUESS:
-                        if (Hangman.checkInput(content)){ //TODO; Maybe not have this logic here and go for an isolated bahaviour?
-                            out.writeUTF(createPayload(Constants.GUESS, content));
+                        if (Hangman.checkInput(content.toUpperCase())){ //TODO; Maybe not have this logic here and go for an isolated bahaviour?
+                            out.writeUTF(createPayload(Constants.GUESS, content, currentGameId));
                         }else{
                             System.out.println("ERROR: Wrongly formatted input");
                         }
                         break;
                     case Constants.JOIN_GAME:
                         //TODO
+                        String gameId = content;
+                        out.writeUTF(createPayload(Constants.JOIN_GAME, gameId, ""));
                         break;
                 }
 
@@ -81,10 +83,11 @@ public class Client {
         }
     }
 
-    private String createPayload(String msgType, String payLoadValue) {
+    private String createPayload(String msgType, String payLoadValue, String currentGameId) {
         return Json.createObjectBuilder()
                 .add("msg", msgType)
                 .add("content", payLoadValue)
+                .add("gameid", currentGameId)
                 .build()
                 .toString();
     }
@@ -97,9 +100,15 @@ public class Client {
                 try {
                     while (!isStopMsgSent) {
                         serverResponse = in.readUTF();
-                        System.out.println("From server: " + serverResponse);
+                        JSONObject jsonResponse = new JSONObject(serverResponse);
+                        String returnMsg = jsonResponse.getString("returnMsg");
+                        System.out.println("From server: " + returnMsg);
+
+                        if (jsonResponse.has("gameid")){
+                            currentGameId = jsonResponse.getString("gameid");
+                        }
                     }
-                } catch (IOException e) {
+                } catch (Exception e){
                     e.printStackTrace();
                 }
             }
