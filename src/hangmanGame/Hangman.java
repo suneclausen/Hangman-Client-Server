@@ -1,5 +1,6 @@
 package hangmanGame;
 
+import helpers.GameUtility;
 import secondTry.Constants;
 
 import java.io.Console;
@@ -21,8 +22,7 @@ public class Hangman {
         this.life = 8;
     }
 
-    public Hangman(String wordToGuess, String owner, String gameId) {
-        this.owner = owner;
+    public Hangman(String wordToGuess, String gameId) {
         this.gameId = gameId;
         this.wordToGuess = wordToGuess.toUpperCase();
         guessedLetters = new TreeSet<>();
@@ -68,7 +68,7 @@ public class Hangman {
         guessedLetters.add(guessLetter);
 
         // print line with correct letter embedded at right index
-        System.out.print("Word to guess: ");
+//        System.out.print("Word to guess: ");
         StringBuilder formattedGuessLine = new StringBuilder();
         int bufferCounter = 0;
         for (int i = 0; i < wordToGuess.length(); i++) {
@@ -182,7 +182,7 @@ public class Hangman {
                 System.out.println("Only insert one letter at a time - has to be an english letter");
                 System.out.println("________________________________________________________________________________");
                 continue;
-            } else if (!checkInput(letter)) {
+            } else if (!GameUtility.checkInput(letter)) {
                 System.out.println(letter + " is not a legal input. Legal inputs are of one of the following: [\"abcdefghijklmnopqrstuvwxyz\"]");
                 System.out.println("________________________________________________________________________________");
                 continue;
@@ -196,20 +196,6 @@ public class Hangman {
             System.out.println("________________________________________________________________________________");
         }
         scan.close();
-    }
-
-    //Check the letter input and see if it is legal. Returns true if it is. 
-    public static boolean checkInput(String input) {
-        String legalInput = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
-        if  (input.length() > 1) {
-            System.out.println("Only insert one letter at a time - has to be an english letter");
-            return false;
-        }else if (legalInput.contains(input)) {
-            return true;
-        }
-
-        System.out.println(input + " is not a legal input. Legal inputs are of one of the following: [\"abcdefghijklmnopqrstuvwxyz\"]");
-        return false;
     }
 
     public static void sketchHangman(int index) {

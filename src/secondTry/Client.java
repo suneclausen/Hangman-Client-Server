@@ -2,6 +2,7 @@ package secondTry;
 // A Java program for a Client
 
 import hangmanGame.Hangman;
+import helpers.GameUtility;
 import org.json.JSONObject;
 
 import javax.json.Json;
@@ -41,7 +42,7 @@ public class Client {
         // keep reading until "STOP" is input
         while (!line.equals("STOP")) {
             try {
-                line = input.readLine();
+                line = input.readLine(); //TODO; Handle bad input.
                 String[] split = line.split(";");
                 String msgType = split[0];
                 String content = split[1];
@@ -50,11 +51,14 @@ public class Client {
                         out.writeUTF(createPayload(msgType, content, ""));
                         break;
                     case Constants.GUESS:
-                        if (Hangman.checkInput(content.toUpperCase())){ //TODO; Maybe not have this logic here and go for an isolated bahaviour?
+                        if (GameUtility.checkInput(content.toUpperCase())){ //TODO; Maybe not have this logic here and go for an isolated bahaviour?
                             out.writeUTF(createPayload(Constants.GUESS, content, currentGameId));
                         }else{
                             System.out.println("ERROR: Wrongly formatted input");
                         }
+                        break;
+                    case Constants.BURN:
+                        out.writeUTF(createPayload(Constants.BURN, "", currentGameId));
                         break;
                     case Constants.JOIN_GAME:
                         //TODO
@@ -65,7 +69,7 @@ public class Client {
 
 //                out.writeUTF(line);
 
-            } catch (IOException i) {
+            } catch (IOException | ArrayIndexOutOfBoundsException i) {
                 System.out.println(i);
             }
         }
@@ -118,7 +122,7 @@ public class Client {
 
     private void setUpConnectionToServer(String address, int port) throws IOException {
         socket = new Socket(address, port);
-        System.out.println("Connected");
+        System.out.println("Client: " + GameUtility.getClientName(socket) + " is connected");
 
         // takes input from terminal
         input = new DataInputStream(System.in);

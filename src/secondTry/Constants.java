@@ -9,4 +9,5 @@ public class Constants {
     public static final String GUESS_LETTER = "GUESS_LETTER";
     public static final String WIN_MSG = "!!!!! Congratulations - You won  !!!!!";
     public static final String LOSE_MSG = "---------- You lost! You ran out of lives! ----------";
+    public static final String BURN = "BURN";
 }
