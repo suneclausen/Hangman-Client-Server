@@ -1,7 +1,6 @@
 package hangmanGame;
 
 import helpers.GameUtility;
-import org.json.JSONObject;
 import secondTry.Constants;
 
 import javax.json.Json;
@@ -48,7 +47,7 @@ public class GameSetUp {
                 while (true) {
                     if (isGameDone && stopBuffer) {
                         try {
-                            owner = currentPlayer;
+                            owner = currentPlayer; //TODO: make logic that takes turn. Kan gøres ved at finde index på owner sætte turncounter på denne og så tage en tur. Det vil tage den næste
                             DataOutputStream out = new DataOutputStream(owner.getOutputStream());
                             out.writeUTF(createReturnMsg("\n!!! You are now the owner of the game: " + gameId + " so send NEW_WORD;[word] to the server with word being your chosen word !!!"));
                             stopBuffer = false;
@@ -60,7 +59,7 @@ public class GameSetUp {
                 }
             }
         });
-//        isGameDoneThread.setPriority(Thread.MAX_PRIORITY);
+//        isGameDoneThread.setPriority(6);
         isGameDoneThread.start();
     }
 
@@ -71,12 +70,14 @@ public class GameSetUp {
                 try {
                     String bufferLastGuessGiven = lastGuessGiven;
                     while (true) {
-                        if (!lastGuessGiven.equals(bufferLastGuessGiven)) {
+                        if (!lastGuessGiven.equals(bufferLastGuessGiven) && !"".equals(lastGuessGiven)) {
                             String response = game.handleGuess(lastGuessGiven);
-
-                            giveFeedBackOnGuessToAllPlayers(response);
+                            giveFeedBackOnGuessToAllPlayers(response); //TODO Some priority here
                             bufferLastGuessGiven = lastGuessGiven;
-                            takeTurn();
+                            if (!isGameDone){
+                                // Only take turn if game is not done. Otherwise the logic is handled elsewhere.. TODO: I think???
+                                takeTurn();
+                            }
                         }
                     }
                 } catch (IOException e) {
@@ -84,11 +85,13 @@ public class GameSetUp {
                 }
             }
         });
+//        t.setPriority(Thread.MAX_PRIORITY);
         t.start();
     }
 
-    private void giveFeedBackOnGuessToAllPlayers(String response) throws IOException {
+    private synchronized void giveFeedBackOnGuessToAllPlayers(String response) throws IOException { //TODO COuld be sync???
         DataOutputStream out;
+        boolean shouldSetIsGameDone = false;
         for (Socket player : players) {
             out = new DataOutputStream(player.getOutputStream());
             if (response.contains(Constants.WIN_MSG)) {
@@ -97,17 +100,21 @@ public class GameSetUp {
                 } else {
                     out.writeUTF(createReturnMsg("You were able to guess the word - so you win.\n" + response));
                 }
-                isGameDone = true;
+                shouldSetIsGameDone = true;
             } else if (response.contains(Constants.LOSE_MSG)) {
                 if (player.equals(owner)) {
                     out.writeUTF(createReturnMsg("The other players could not guess the word - hence you win."));
                 } else {
                     out.writeUTF(createReturnMsg("None of the players could guess the word, so you lose.\n" + response));
                 }
-                isGameDone = true;
+                shouldSetIsGameDone = true;
             } else {
                 out.writeUTF(createReturnMsg("Currentplayer is done with his/her turn and game state is\n" + response));
             }
+        }
+
+        if (shouldSetIsGameDone){
+            isGameDone = true; //TODO: MAybe use setter???
         }
     }
 
@@ -140,8 +147,8 @@ public class GameSetUp {
                 while (true) {
                     if (!bufferCurrentPlayer.equals(currentPlayer) ||
                             (players.size() == 2 && !lastGuessGiven.equals(bufferLastGuessGiven)) ||
-                            !lastGuessGiven.equals(bufferLastGuessGiven) ||
-                            !game.getWordToGuess().equals(bufferLastWordToGuess)
+                            !lastGuessGiven.equals(bufferLastGuessGiven)
+//                            || !game.getWordToGuess().equals(bufferLastWordToGuess)
                             ) {
                         // if there are only two players we will have to stay at the same players since owner cannot guess at his own word.
                         String currentPlayerName = GameUtility.getClientName(currentPlayer);
@@ -150,7 +157,9 @@ public class GameSetUp {
                             try {
                                 out = new DataOutputStream(player.getOutputStream());
                                 if (GameUtility.getClientName(player).equals(currentPlayerName)) {
-                                    out.writeUTF(createReturnMsg("Your turn"));
+                                    if (!isGameDone){
+                                        out.writeUTF(createReturnMsg("Your turn"));
+                                    }
                                 } else {
                                     out.writeUTF(createReturnMsg("The turn belongs to player: " + currentPlayerName + ". Wait until it is your turn"));
                                 }
@@ -165,10 +174,12 @@ public class GameSetUp {
                 }
             }
         });
+//        controlTurns.setPriority(6);
         controlTurns.start();
     }
 
-    public void startNewGame(String gameWord) {
+//    public synchronized void startNewGame(String gameWord) { //TODO: Er ret sikker på dette skal være synchronized
+    public synchronized void startNewGame(String gameWord) { //TODO: Er ret sikker på dette skal være synchronized
         game = new Hangman(gameWord);
         lastGuessGiven = "";
         isGameDone = false;
@@ -189,13 +200,19 @@ public class GameSetUp {
                     }
 
                     out = new DataOutputStream(player.getOutputStream());
-                    out.writeUTF(createReturnMsg("Wait for your turn"));
+                    if (players.size() >= 2)
+                    {
+                        out.writeUTF(createReturnMsg("Welcome to the game - Wait for your turn"));
+                    }else{
+                        out.writeUTF(createReturnMsg("You turn. Begin the game."));
+                    }
                     players.add(player);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
+//        newPlayer.setPriority(Thread.MAX_PRIORITY);
         newPlayer.start();
     }
 
@@ -238,6 +255,8 @@ public class GameSetUp {
         } else {
             currentPlayer = players.get(indexOfPlayer);
         }
+
+        //TODO: Consider telling whose turn it is here
     }
 
     private String createReturnMsg(String response) {

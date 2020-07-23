@@ -4,11 +4,12 @@ package secondTry;
 import hangmanGame.GameSetUp;
 import hangmanGame.Hangman;
 import helpers.GameUtility;
-import org.json.*;
+import org.json.JSONObject;
 
 import javax.json.Json;
-import java.net.*;
 import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -98,7 +99,6 @@ public class Server {
                         if (isInputValid) {
                             games.get(givenGameid).startNewGame(content);
                         }
-
                         break;
                     case Constants.START_GAME:
                         createGame(content, socket, outputStream);
@@ -115,7 +115,7 @@ public class Server {
                         }
                         break;
                     case Constants.JOIN_GAME:
-                        handeJoinGame(socket, clientName, outputStream, content);
+                        handleJoinGame(socket, clientName, outputStream, content);
                         break;
                     default:
                         // Client msg was not legal json
@@ -156,14 +156,14 @@ public class Server {
             return false;
         }
         if (games.get(givenGameid).getGame().getGuessedLetters().contains(content)) {
-            outputStream.writeUTF(errorMsg("We have already guessed on that letter:" + content));
+            outputStream.writeUTF(errorMsg("We have already guessed on that letter:" + content + ". Try again."));
             return false;
         }
 
         return true;
     }
 
-    private void handeJoinGame(Socket socket, String clientName, DataOutputStream outputStream, String gameIdToJoin) throws IOException {
+    private void handleJoinGame(Socket socket, String clientName, DataOutputStream outputStream, String gameIdToJoin) throws IOException {
         if (games.containsKey(gameIdToJoin)) {
             if (clientGame.containsKey(clientName)) {
                 //See if id already is in one game. Remove if so
@@ -188,7 +188,6 @@ public class Server {
             outputStream.writeUTF(errorMsg("Game with id:" + gameIdToJoin + " does not exist."));
         }
     }
-
 
     private String createReturnMsg(String response) {
         return Json.createObjectBuilder()

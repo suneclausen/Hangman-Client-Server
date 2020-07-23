@@ -1,13 +1,14 @@
 package secondTry;
 // A Java program for a Client
 
-import hangmanGame.Hangman;
 import helpers.GameUtility;
 import org.json.JSONObject;
 
 import javax.json.Json;
-import java.net.*;
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 public class Client {
     // initialize socket and input output streams
@@ -33,6 +34,10 @@ public class Client {
         }
 
         handleClientInput(); // Main Thread
+    }
+
+    public static void main(String args[]) {
+        Client client = new Client("127.0.0.1", 5000);
     }
 
     private void handleClientInput() {
@@ -75,6 +80,11 @@ public class Client {
 
             } catch (IOException | ArrayIndexOutOfBoundsException i) {
                 System.out.println(i);
+                try {
+                    out.writeUTF("Wrong format of msg. Try again.");
+                } catch (IOException e) {
+                    //TODO Completely ridicolous to have this... but no other way.
+                }
             }
         }
         isStopMsgSent = true;
@@ -135,10 +145,5 @@ public class Client {
         out = new DataOutputStream(socket.getOutputStream());
 
         in = new DataInputStream(socket.getInputStream());
-    }
-
-
-    public static void main(String args[]) {
-        Client client = new Client("127.0.0.1", 5000);
     }
 }
