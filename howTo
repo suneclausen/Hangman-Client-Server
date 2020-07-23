@@ -1,0 +1,36 @@
+
+BUGS:
+Ryd op i koden. Den er ikke for god lige nu.
+
+Få spillet printet i første rudne for alle (inden der er afgivet gæt)
+
+
+tilføj et gametag så personen er nemmere at genkende
+
+Håndter at alle undtagen 1 spiller forsvinder (ikke en prioritet)
+    - Kan gøres ved at lave en boolsk variable der sættes i takt med at folk removes og så vil der i controlTurnsListener tændes for den og den vil tjekke. Kunne være godt hvis den kunne locke!
+
+
+TODOS
+Overvej at få sketch af hangman med (lav prioritet)
+
+Gør noget ved switchene. De kunne vidst godt være pænere
+
+FÅ skrevet en README med instruktioner (skriv om tur, keywords, ny spil, forlad spil,
+
+Overvej om clientGames kan fjernes. Den virker ikke særlig vigtig for server.java
+
+Understøt logik for at joine nyt spil, mens man allerede er i gang med et
+
+FÅ fjernet brug af stopBuffer (den er grim)
+
+Få gennemgået hvor vigtigt det er de få steder der er brugt synchronized
+
+Find ud af om den bedste konvention er at bruge getter og setter eller om det er okay at bruge field i stedet.
+
+Hvad sker der hvis en owner af et GameSetup leaver spillet. Løs de mulige problemer der gives fra dette
+
+Lav observer pattern på hvis tur det er, så gameSetUp skal fungere som observer der holder styr på spillets tilstand og lad den fortælle de forskellige klienter i et spil hvis noget ændres.
+
+Overvej at gå helt væk fra det med sleep() (det er aldrig en god løsning) Kig på atomicReferences
+https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicReference.html

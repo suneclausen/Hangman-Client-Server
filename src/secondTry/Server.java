@@ -27,10 +27,8 @@ public class Server {
 
     // constructor with port
     public Server(int port) {
-        // starts server and waits for a connection
+        // starts server and listens for incoming connection. For each new we start a listen thread on that connection.
         try {
-//            listenForNewClients(port); //TODO: Consider making threaded and be able to handle multiple clients.
-
             Socket socket = null;
             ServerSocket server = new ServerSocket(port);
             while (true) {
@@ -39,14 +37,6 @@ public class Server {
 
                 socket = server.accept();
                 System.out.println("Client accepted:" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
-//
-//                // takes input from the client socket
-//                in = new DataInputStream(
-//                        new BufferedInputStream(socket.getInputStream()));
-//
-//                // output stream for returning msg to client that send the message.
-//                outputStream = new DataOutputStream(socket.getOutputStream());
-
 
                 Socket finalSocket = socket;
                 Thread t = new Thread(new Runnable() {
@@ -62,10 +52,13 @@ public class Server {
                 });
                 t.start();
             }
-
         } catch (IOException i) {
             System.out.println(i);
         }
+    }
+
+    public static void main(String args[]) {
+        Server server = new Server(5000);
     }
 
     private void listenForClientMessage(Socket socket) throws IOException {
@@ -78,13 +71,12 @@ public class Server {
         DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
 
         String line = "";
-//        Hangman game = null;
 
         // reads message from client until "STOP" is sent
         while (!line.equals("STOP")) {
             try {
                 line = in.readUTF();
-                System.out.println(clientName + ": " + line); //todo: delete
+                System.out.println(clientName + ": " + line); //Write in server (as log) about messages)
 
                 JSONObject json = new JSONObject(line);
                 String msg = json.getString("msg");
@@ -124,6 +116,7 @@ public class Server {
                 }
 
             } catch (IOException io) {
+                System.out.println("Given input was: " + line);
                 System.out.println(io);
             }
         }
@@ -214,11 +207,6 @@ public class Server {
 
     private String errorMsg(String msg) {
         return Json.createObjectBuilder().add("returnMsg", msg).build().toString();
-    }
-
-
-    public static void main(String args[]) {
-        Server server = new Server(5000);
     }
 }
 

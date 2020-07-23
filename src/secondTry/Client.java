@@ -47,10 +47,10 @@ public class Client {
         // keep reading until "STOP" is input
         while (!line.equals("STOP")) {
             try {
-                line = input.readLine(); //TODO; Handle bad input.
+                line = input.readLine().trim(); //TODO; Handle bad input.
                 String[] split = line.split(";");
-                String msgType = split[0];
-                String content = split[1];
+                String msgType = split[0].trim();
+                String content = split[1].trim();
                 switch (msgType.trim()) {
                     case Constants.START_GAME:
                         out.writeUTF(createPayload(msgType, content, ""));
@@ -74,17 +74,12 @@ public class Client {
                         String gameId = content;
                         out.writeUTF(createPayload(Constants.JOIN_GAME, gameId, ""));
                         break;
+                    default:
+                        System.out.println("Not a keyword recognized by the system. Input was: " + line + "\nTry again with legal input ");
                 }
-
-//                out.writeUTF(line);
-
             } catch (IOException | ArrayIndexOutOfBoundsException i) {
                 System.out.println(i);
-                try {
-                    out.writeUTF("Wrong format of msg. Try again.");
-                } catch (IOException e) {
-                    //TODO Completely ridicolous to have this... but no other way.
-                }
+                System.out.println("Wrong format of msg. Try again.\n" + line);
             }
         }
         isStopMsgSent = true;

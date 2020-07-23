@@ -45,21 +45,22 @@ public class GameSetUp {
             public void run() {
                 stopBuffer = true;
                 while (true) {
-                    if (isGameDone && stopBuffer) {
-                        try {
+                    try {
+                        Thread.sleep(100);
+                        if (isGameDone && stopBuffer) {
                             owner = currentPlayer; //TODO: make logic that takes turn. Kan gøres ved at finde index på owner sætte turncounter på denne og så tage en tur. Det vil tage den næste
                             DataOutputStream out = new DataOutputStream(owner.getOutputStream());
                             out.writeUTF(createReturnMsg("\n!!! You are now the owner of the game: " + gameId + " so send NEW_WORD;[word] to the server with word being your chosen word !!!"));
                             stopBuffer = false;
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
-//                    isGameDone = false;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
             }
         });
-//        isGameDoneThread.setPriority(6);
         isGameDoneThread.start();
     }
 
@@ -70,26 +71,29 @@ public class GameSetUp {
                 try {
                     String bufferLastGuessGiven = lastGuessGiven;
                     while (true) {
+                        Thread.sleep(100);
                         if (!lastGuessGiven.equals(bufferLastGuessGiven) && !"".equals(lastGuessGiven)) {
                             String response = game.handleGuess(lastGuessGiven);
-                            giveFeedBackOnGuessToAllPlayers(response); //TODO Some priority here
+                            giveFeedBackOnGuessToAllPlayers(response);
                             bufferLastGuessGiven = lastGuessGiven;
-                            if (!isGameDone){
-                                // Only take turn if game is not done. Otherwise the logic is handled elsewhere.. TODO: I think???
+                            if (!isGameDone) {
+                                // Only take turn if game is not done. Otherwise the logic is handled elsewhere..
                                 takeTurn();
                             }
                         }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });
-//        t.setPriority(Thread.MAX_PRIORITY);
+        t.setPriority(Thread.MAX_PRIORITY);
         t.start();
     }
 
-    private synchronized void giveFeedBackOnGuessToAllPlayers(String response) throws IOException { //TODO COuld be sync???
+    private synchronized void giveFeedBackOnGuessToAllPlayers(String response) throws IOException {
         DataOutputStream out;
         boolean shouldSetIsGameDone = false;
         for (Socket player : players) {
@@ -113,7 +117,7 @@ public class GameSetUp {
             }
         }
 
-        if (shouldSetIsGameDone){
+        if (shouldSetIsGameDone) {
             isGameDone = true; //TODO: MAybe use setter???
         }
     }
@@ -124,6 +128,11 @@ public class GameSetUp {
             public void run() {
                 Socket bufferCurrentPlayer = currentPlayer;
                 while (true) {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     if (players.size() == 1) {
                         // We only have one player and we cannot get started before another one has joined the game
                         continue;
@@ -142,43 +151,11 @@ public class GameSetUp {
                     }
                 }
 
-                String bufferLastGuessGiven = lastGuessGiven;
-                String bufferLastWordToGuess = game.getWordToGuess();
-                while (true) {
-                    if (!bufferCurrentPlayer.equals(currentPlayer) ||
-                            (players.size() == 2 && !lastGuessGiven.equals(bufferLastGuessGiven)) ||
-                            !lastGuessGiven.equals(bufferLastGuessGiven)
-//                            || !game.getWordToGuess().equals(bufferLastWordToGuess)
-                            ) {
-                        // if there are only two players we will have to stay at the same players since owner cannot guess at his own word.
-                        String currentPlayerName = GameUtility.getClientName(currentPlayer);
-                        DataOutputStream out;
-                        for (Socket player : players) {
-                            try {
-                                out = new DataOutputStream(player.getOutputStream());
-                                if (GameUtility.getClientName(player).equals(currentPlayerName)) {
-                                    if (!isGameDone){
-                                        out.writeUTF(createReturnMsg("Your turn"));
-                                    }
-                                } else {
-                                    out.writeUTF(createReturnMsg("The turn belongs to player: " + currentPlayerName + ". Wait until it is your turn"));
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        bufferCurrentPlayer = currentPlayer;
-                        bufferLastGuessGiven = lastGuessGiven;
-                        bufferLastWordToGuess = game.getWordToGuess();
-                    }
-                }
             }
         });
-//        controlTurns.setPriority(6);
         controlTurns.start();
     }
 
-//    public synchronized void startNewGame(String gameWord) { //TODO: Er ret sikker på dette skal være synchronized
     public synchronized void startNewGame(String gameWord) { //TODO: Er ret sikker på dette skal være synchronized
         game = new Hangman(gameWord);
         lastGuessGiven = "";
@@ -200,10 +177,9 @@ public class GameSetUp {
                     }
 
                     out = new DataOutputStream(player.getOutputStream());
-                    if (players.size() >= 2)
-                    {
+                    if (players.size() >= 2) {
                         out.writeUTF(createReturnMsg("Welcome to the game - Wait for your turn"));
-                    }else{
+                    } else {
                         out.writeUTF(createReturnMsg("You turn. Begin the game."));
                     }
                     players.add(player);
@@ -248,15 +224,32 @@ public class GameSetUp {
 
         turnCounter++;
         int indexOfPlayer = (turnCounter % players.size());
-        String player = GameUtility.getClientName(players.get(indexOfPlayer));
+        String nextPlayer = GameUtility.getClientName(players.get(indexOfPlayer));
         String ownerName = GameUtility.getClientName(owner);
-        if (player.equals(ownerName)) {
+        if (nextPlayer.equals(ownerName)) {
             takeTurn();
+            return;
         } else {
             currentPlayer = players.get(indexOfPlayer);
         }
 
-        //TODO: Consider telling whose turn it is here
+        //TODO: Make it a method
+        String currentPlayerName = GameUtility.getClientName(currentPlayer);
+        DataOutputStream out;
+        for (Socket player : players) {
+            try {
+                out = new DataOutputStream(player.getOutputStream());
+                if (GameUtility.getClientName(player).equals(currentPlayerName)) {
+                    if (!isGameDone) {
+                        out.writeUTF(createReturnMsg("Your turn"));
+                    }
+                } else {
+                    out.writeUTF(createReturnMsg("The turn belongs to player: " + currentPlayerName + ". Wait until it is your turn"));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private String createReturnMsg(String response) {

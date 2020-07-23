@@ -29,93 +29,6 @@ public class Hangman {
         this.life = 8;
     }
 
-    public String getGameId() {
-        return gameId;
-    }
-
-    public int getLife() {
-        return life;
-    }
-
-    public void setGuessedLetters(TreeSet<String> guessedLetters) {
-        this.guessedLetters = guessedLetters;
-    }
-
-    public void setLife(int life) {
-        this.life = life;
-    }
-
-    public String getWordToGuess() {
-        return wordToGuess;
-    }
-
-    public void setWordToGuess(String wordToGuess) {
-        this.wordToGuess = wordToGuess;
-    }
-
-    public TreeSet<String> getGuessedLetters() {
-        return guessedLetters;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public String handleGuess(String guessLetter) {
-        guessLetter = guessLetter.toUpperCase();
-
-        // Check if letter belongs to word or if we have already seen it
-        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
-            life--;
-        }
-
-        guessedLetters.add(guessLetter);
-
-        // print line with correct letter embedded at right index
-//        System.out.print("Word to guess: ");
-        StringBuilder formattedGuessLine = new StringBuilder();
-        int bufferCounter = 0;
-        for (int i = 0; i < wordToGuess.length(); i++) {
-            String letterInInitWord = wordToGuess.substring(i, i + 1);
-            if (guessedLetters.contains(letterInInitWord)) {
-                formattedGuessLine.append(" " + letterInInitWord + " ");
-                bufferCounter++;
-            } else if (letterInInitWord.contains("-")) {
-                formattedGuessLine.append(" - ");
-                bufferCounter++;
-            } else if (letterInInitWord.contains(" ")) {
-                formattedGuessLine.append("   ");
-                bufferCounter++;
-            } else {
-                formattedGuessLine.append(" _ ");
-            }
-        }
-//        System.out.print("\n");
-
-        //Break if we have guessed the right word.
-        if (bufferCounter == wordToGuess.length()) {
-            return formattedGuessLine.toString() + "\n" + Constants.WIN_MSG;
-        }
-
-        // Check if letter belongs to word or if we have already seen it
-        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
-            life--;
-        }
-        guessedLetters.add(guessLetter);
-
-
-        // you dead
-        if (life == 0) {
-            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess;
-        }
-        return formattedGuessLine.toString() + "\nALready guessed letters: " + guessedLetters.toString() + "\nLives left: " + life;
-    }
-
-
     public static void main(String[] args) {
         // Inital start point. Get a word to guess. The word you write is going to be invisble
         System.out.print("Insert word to guess (only english words): ");
@@ -141,7 +54,7 @@ public class Hangman {
                 sketchHangman(8 - life - 1);
             }
 
-            // You lose if you run out of lives. 
+            // You lose if you run out of lives.
             if (life == 0) {
                 System.out.println("---------- You lost! You ran out of lives! ----------");
                 System.out.println("The correct word was: " + initWord);
@@ -168,13 +81,13 @@ public class Hangman {
             }
             System.out.print("\n");
 
-            //Break if we have guessed the right word. 
+            //Break if we have guessed the right word.
             if (bufferCounter == initWord.length()) {
                 System.out.println("!!!!! Congratulations - You won  !!!!!");
                 break;
             }
 
-            // print already guessed words and status of life 
+            // print already guessed words and status of life
             System.out.println("Already guessed words" + guessedLetters);
             System.out.println("Lifes left:" + life);
             System.out.print("Try a letter: ");
@@ -196,7 +109,7 @@ public class Hangman {
                 continue;
             }
 
-            // Check if letter belongs to word or if we have already seen it 
+            // Check if letter belongs to word or if we have already seen it
             if (!initWord.contains(letter) && !guessedLetters.contains(letter)) {
                 life--;
             }
@@ -304,5 +217,92 @@ public class Hangman {
         //     |
         //    _|___";
         return sketch;
+    }
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public int getLife() {
+        return life;
+    }
+
+    public void setLife(int life) {
+        this.life = life;
+    }
+
+    public String getWordToGuess() {
+        return wordToGuess;
+    }
+
+    public void setWordToGuess(String wordToGuess) {
+        this.wordToGuess = wordToGuess;
+    }
+
+    public TreeSet<String> getGuessedLetters() {
+        return guessedLetters;
+    }
+
+    public void setGuessedLetters(TreeSet<String> guessedLetters) {
+        this.guessedLetters = guessedLetters;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public String handleGuess(String guessLetter) {
+        guessLetter = guessLetter.toUpperCase();
+
+        // Check if letter belongs to word or if we have already seen it
+        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
+            life--;
+        }
+
+        guessedLetters.add(guessLetter);
+
+        // print line with correct letter embedded at right index
+        StringBuilder formattedGuessLine = new StringBuilder();
+        int bufferCounter = 0;
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            String letterInInitWord = wordToGuess.substring(i, i + 1);
+            if (guessedLetters.contains(letterInInitWord)) {
+                formattedGuessLine.append(" " + letterInInitWord + " ");
+                bufferCounter++;
+            } else if (letterInInitWord.contains("-")) {
+                formattedGuessLine.append(" - ");
+                bufferCounter++;
+            } else if (letterInInitWord.contains(" ")) {
+                formattedGuessLine.append("   ");
+                bufferCounter++;
+            } else {
+                formattedGuessLine.append(" _ ");
+            }
+        }
+
+        //Break if we have guessed the right word.
+        if (bufferCounter == wordToGuess.length()) {
+            return formattedGuessLine.toString() + "\n" + Constants.WIN_MSG;
+        }
+
+        // Check if letter belongs to word or if we have already seen it
+        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
+            life--;
+        }
+        guessedLetters.add(guessLetter);
+
+
+        // you are dead
+        if (life == 0) {
+            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess;
+        }
+        return formattedGuessLine.toString() + "\n" +
+                "Already guessed letters: " +
+                guessedLetters.toString() + "\n" +
+                "Lives left: " + life;
     }
 }
