@@ -5,7 +5,10 @@ import java.net.Socket;
 public class GameUtility {
 
     public static String getClientName(Socket socket) {
-        return socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
+        return getClientName(socket, "");
+    }
+    public static String getClientName(Socket socket, String playerName) {
+        return socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + " " + playerName;
     }
 
     //Check the letter input and see if it is legal. Returns true if it is.

@@ -16,16 +16,17 @@ public class Client {
     private DataInputStream input = null;
     private DataInputStream in = null;
     private DataOutputStream out = null;
-    private String ipPort = null;
 
     private boolean isStopMsgSent;
     private String currentGameId;
+    private String playerName;
 
     // constructor to put ip address and port
-    public Client(String address, int port) {
+    public Client(String address, int port, String playerName) {
+        this.playerName = playerName;
         // establish a connection
         try {
-            setUpConnectionToServer(address, port);
+            setUpConnectionToServer(address, port, playerName);
 
             listenForServerMessages(); //Threaded
 
@@ -37,7 +38,13 @@ public class Client {
     }
 
     public static void main(String args[]) {
-        Client client = new Client("127.0.0.1", 5000);
+        String playerName = "";
+//        try {
+//            playerName = args[0];
+//        }catch (Exception e){
+//        } TODO: This is not supported on server yet. When it is we can use this.
+
+        Client client = new Client("127.0.0.1", 5000, playerName);
     }
 
     private void handleClientInput() {
@@ -45,15 +52,23 @@ public class Client {
         String line = "";
 
         // keep reading until "STOP" is input
-        while (!line.equals("STOP")) {
+        while (!Constants.STOP.equals(line)) {
             try {
                 line = input.readLine().trim(); //TODO; Handle bad input.
                 String[] split = line.split(";");
-                String msgType = split[0].trim();
+                String msgType = split[0].trim().toUpperCase();
                 String content = split[1].trim();
+                content = Constants.JOIN_GAME.equals(msgType) ? content  : content.toUpperCase();
+
                 switch (msgType.trim()) {
                     case Constants.START_GAME:
                         out.writeUTF(createPayload(msgType, content, ""));
+                        break;
+                    case Constants.NEW_WORD:
+                        out.writeUTF(createPayload(Constants.NEW_WORD, content, currentGameId));
+                        break;
+                    case Constants.GAMES:
+                        out.writeUTF(createPayload(Constants.GAMES, content, ""));
                         break;
                     case Constants.GUESS:
                         if (GameUtility.checkInput(content.toUpperCase())) { //TODO; Maybe not have this logic here and go for an isolated bahaviour?
@@ -66,11 +81,7 @@ public class Client {
                         // For BURNING turn
                         out.writeUTF(createPayload(Constants.BURN, "", currentGameId));
                         break;
-                    case Constants.NEW_WORD:
-                        out.writeUTF(createPayload(Constants.NEW_WORD, content, currentGameId));
-                        break;
                     case Constants.JOIN_GAME:
-                        //TODO
                         String gameId = content;
                         out.writeUTF(createPayload(Constants.JOIN_GAME, gameId, ""));
                         break;
@@ -92,17 +103,9 @@ public class Client {
             socket.close();
             in.close();
         } catch (IOException i) {
+            System.out.println("Could not close connections.");
             System.out.println(i);
         }
-    }
-
-    private String createPayload(String msgType, String payLoadValue, String currentGameId) {
-        return Json.createObjectBuilder()
-                .add("msg", msgType)
-                .add("content", payLoadValue)
-                .add("gameid", currentGameId)
-                .build()
-                .toString();
     }
 
     private void listenForServerMessages() {
@@ -129,7 +132,7 @@ public class Client {
         serverResponseThread.start();
     }
 
-    private void setUpConnectionToServer(String address, int port) throws IOException {
+    private void setUpConnectionToServer(String address, int port, String playerName) throws IOException {
         socket = new Socket(address, port);
         System.out.println("Client: " + GameUtility.getClientName(socket) + " is connected");
 
@@ -140,5 +143,17 @@ public class Client {
         out = new DataOutputStream(socket.getOutputStream());
 
         in = new DataInputStream(socket.getInputStream());
+
+        //Announce player to server:
+        out.writeUTF(createPayload(Constants.INTRODUCE_NAME, playerName, ""));
+    }
+
+    private String createPayload(String msgType, String payLoadValue, String currentGameId) {
+        return Json.createObjectBuilder()
+                .add("msg", msgType)
+                .add("content", payLoadValue)
+                .add("gameid", currentGameId)
+                .build()
+                .toString();
     }
 }

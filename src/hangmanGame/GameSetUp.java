@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class GameSetUp {
@@ -21,6 +22,7 @@ public class GameSetUp {
     private boolean isGameDone;
     private boolean stopBuffer;
     private int numberOfLives = 8;
+    private HashMap<Socket, String> playerNames = new HashMap<>();
 
     public GameSetUp(Hangman game, Socket owner) {
         this.game = game;
@@ -53,9 +55,7 @@ public class GameSetUp {
                             out.writeUTF(createReturnMsg("\n!!! You are now the owner of the game: " + gameId + " so send NEW_WORD;[word] to the server with word being your chosen word !!!"));
                             stopBuffer = false;
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -82,9 +82,7 @@ public class GameSetUp {
                             }
                         }
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -118,7 +116,7 @@ public class GameSetUp {
         }
 
         if (shouldSetIsGameDone) {
-            isGameDone = true; //TODO: MAybe use setter???
+            isGameDone = true;
         }
     }
 
@@ -264,6 +262,7 @@ public class GameSetUp {
             String playerName = GameUtility.getClientName(player);
             if (playerName.equals(clientName)) {
                 players.remove(player);
+                playerNames.remove(player);
                 break;
             }
         }

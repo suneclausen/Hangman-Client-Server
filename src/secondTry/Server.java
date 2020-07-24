@@ -14,16 +14,9 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class Server {
-    //initialize socket and input stream
-//    private Socket socket = null;
-//    private ServerSocket server = null;
-//    private DataInputStream in = null;
-//    private DataOutputStream outputStream = null;
-    private DataInputStream input = null;
+    // Global maps for structering players association to games and game associtions to actual gameSetUps
     private HashMap<String, String> clientGame = new HashMap<>(); // key: clientName, value: gameId
     private HashMap<String, GameSetUp> games = new HashMap<>(); // key: gameId, value: GameSetUp  --value: the Hangman game with that ID
-
-    private int counter = 0;
 
     // constructor with port
     public Server(int port) {
@@ -62,7 +55,6 @@ public class Server {
     }
 
     private void listenForClientMessage(Socket socket) throws IOException {
-        String clientName = GameUtility.getClientName(socket);
         // takes input from the client socket
         DataInputStream in = new DataInputStream(
                 new BufferedInputStream(socket.getInputStream()));
@@ -70,10 +62,11 @@ public class Server {
         // output stream for returning msg to client that send the message.
         DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
 
+        String clientName = GameUtility.getClientName(socket);
         String line = "";
 
         // reads message from client until "STOP" is sent
-        while (!line.equals("STOP")) {
+        while (!Constants.STOP.equals(line)) {
             try {
                 line = in.readUTF();
                 System.out.println(clientName + ": " + line); //Write in server (as log) about messages)
@@ -83,31 +76,30 @@ public class Server {
                 String content = json.getString("content");
                 String givenGameid = json.getString("gameid");
 
-                boolean isInputValid;
-
                 switch (msg) {
-                    case Constants.NEW_WORD:
-                        isInputValid = validateInput(clientName, outputStream, content, givenGameid);
-                        if (isInputValid) {
-                            games.get(givenGameid).startNewGame(content);
-                        }
+                    case Constants.INTRODUCE_NAME:
+                        clientName = GameUtility.getClientName(socket, content);
+                        outputStream.writeUTF(createReturnMsg("You are " + clientName));
+                        getGamesOverview(outputStream);
                         break;
                     case Constants.START_GAME:
                         createGame(content, socket, outputStream);
                         break;
+                    case Constants.NEW_WORD:
+                        handleNewWordForGame(outputStream, clientName, content, givenGameid);
+                        break;
+                    case Constants.GAMES:
+                        getGamesOverview(outputStream);
+                        break;
+                    case Constants.GUESS:
+                        handleGuess(clientName, outputStream, content, givenGameid);
+                        break;
                     case Constants.BURN:
                         games.get(givenGameid).takeTurn();
                         break;
-                    case Constants.GUESS:
-                        //Handle guess to a specific game from a specific user.
-                        // Setter will update variable that threads look at to decide whether or not to do stuff
-                        isInputValid = validateInput(clientName, outputStream, content, givenGameid);
-                        if (isInputValid) {
-                            games.get(givenGameid).setLastGuessGiven(content.toUpperCase());
-                        }
-                        break;
                     case Constants.JOIN_GAME:
                         handleJoinGame(socket, clientName, outputStream, content);
+                        getGamesOverview(outputStream);
                         break;
                     default:
                         // Client msg was not legal json
@@ -116,7 +108,7 @@ public class Server {
                 }
 
             } catch (IOException io) {
-                System.out.println("Given input was: " + line);
+                System.out.println("IO exception - Given input was: " + line);
                 System.out.println(io);
             }
         }
@@ -125,7 +117,34 @@ public class Server {
         // close connection
         socket.close();
         in.close();
-        input.close();
+    }
+
+    private void handleNewWordForGame(DataOutputStream outputStream, String clientName, String content, String givenGameid) throws IOException {
+        boolean isInputValid = validateInput(clientName, outputStream, content, givenGameid);
+        if (isInputValid) {
+            games.get(givenGameid).startNewGame(content);
+        }
+    }
+
+    private void handleGuess(String clientName, DataOutputStream outputStream, String content, String givenGameid) throws IOException {
+        //Handle guess to a specific game from a specific user.
+        boolean isInputValid;
+        isInputValid = validateInput(clientName, outputStream, content, givenGameid);
+        if (isInputValid) {
+            // Setter will update variable that threads look at to decide whether or not to do stuff
+            games.get(givenGameid).setLastGuessGiven(content.toUpperCase());
+        }
+    }
+
+    private void getGamesOverview(DataOutputStream outputStream) throws IOException {
+        for (String gameId : games.keySet()) {
+            GameSetUp gameSetUp = games.get(gameId);
+            String returnMessege = "There are currently the following games active with number of players joined\n" +
+                    "game id:" + gameId + "\t" +
+                    "current number of players: " + gameSetUp.getPlayers().size();
+            outputStream.writeUTF(createReturnMsg(returnMessege));
+        }
+
     }
 
     private boolean validateInput(String clientName, DataOutputStream outputStream, String content, String givenGameid) throws IOException {
@@ -182,13 +201,6 @@ public class Server {
         }
     }
 
-    private String createReturnMsg(String response) {
-        return Json.createObjectBuilder()
-                .add("returnMsg", response)
-                .build()
-                .toString();
-    }
-
     private void createGame(String content, Socket socket, DataOutput outputStream) throws IOException {
         String clientName = GameUtility.getClientName(socket);
         String gameId = UUID.randomUUID().toString();
@@ -207,6 +219,13 @@ public class Server {
 
     private String errorMsg(String msg) {
         return Json.createObjectBuilder().add("returnMsg", msg).build().toString();
+    }
+
+    private String createReturnMsg(String response) {
+        return Json.createObjectBuilder()
+                .add("returnMsg", response)
+                .build()
+                .toString();
     }
 }
 
