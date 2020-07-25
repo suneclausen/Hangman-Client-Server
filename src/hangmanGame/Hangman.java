@@ -1,7 +1,7 @@
 package hangmanGame;
 
-import helpers.GameUtility;
 import helpers.Constants;
+import helpers.GameUtility;
 
 import java.io.Console;
 import java.util.Scanner;
@@ -269,7 +269,7 @@ public class Hangman {
         guessLetter = guessLetter.toUpperCase();
 
         String sketchLine = "";
-        if (isSketchEnabled){
+        if (isSketchEnabled) {
             sketchLine = sketch[8 - life];
         }
 
@@ -313,7 +313,7 @@ public class Hangman {
 
         // you are dead
         if (life == 0) {
-            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess +"\n" + sketchLine;
+            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess + "\n" + sketchLine;
         }
 
 

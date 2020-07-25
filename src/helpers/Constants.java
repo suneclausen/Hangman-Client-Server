@@ -12,4 +12,5 @@ public class Constants {
     public static final String STOP = "STOP";
     public static final String INTRODUCE_NAME = "INTRODUCE_NAME";
     public static final String ENABLE_SKETCH = "ENABLE_SKETCH";
+    public static final String LEAVE_GAME = "LEAVE_GAME";
 }

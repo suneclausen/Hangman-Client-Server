@@ -38,7 +38,7 @@ public class GameSetUp {
         this.playerNames.put(owner, nameOfOwner);
 
         listenForIsGameDone(); //threaded
-        controlTurnsListener(); // threaded
+        ensureEnoughPlayersListener(); // threaded
         startTurnsInGame(); // threaded
     }
 
@@ -47,6 +47,7 @@ public class GameSetUp {
             @Override
             public void run() {
                 stopBuffer = true;
+                // Stopbuffer is used to only once write a end of game message and declare new owner.
                 while (true) {
                     try {
                         Thread.sleep(100);
@@ -121,8 +122,8 @@ public class GameSetUp {
         }
     }
 
-    private void controlTurnsListener() {
-        Thread controlTurns = new Thread(new Runnable() {
+    private void ensureEnoughPlayersListener() {
+        Thread enoughPlayers = new Thread(new Runnable() {
             @Override
             public void run() {
                 Socket bufferCurrentPlayer = currentPlayer;
@@ -140,7 +141,12 @@ public class GameSetUp {
                         // We are now enough to play. The owner who created the guessword cannot participate.
                         try {
                             DataOutputStream o = new DataOutputStream(currentPlayer.getOutputStream());
-                            o.writeUTF(createReturnMsg("Ready to play. We are now to players of: " + players.stream().map(GameUtility::getClientName).collect(Collectors.toList())));
+                            o.writeUTF(createReturnMsg("Ready to play. We are now two players of: " + players.stream()
+                                    .map(socket -> {
+                                        String name = playerNames.get(socket);
+                                        return GameUtility.getClientName(socket, name);
+                                    })
+                                    .collect(Collectors.toList())));
                             takeTurn();
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -150,14 +156,14 @@ public class GameSetUp {
                 }
             }
         });
-        controlTurns.start();
+        enoughPlayers.start();
     }
 
     public synchronized void startNewGame(String gameWord) {
         game = new Hangman(gameWord);
         lastGuessGiven = "";
         isGameDone = false;
-        stopBuffer = true; //TODO: THIS IS UGLY!
+        stopBuffer = true;
         takeTurn();
     }
 
@@ -229,7 +235,7 @@ public class GameSetUp {
         int indexOfPlayer = (turnCounter % players.size());
         String nextPlayer = GameUtility.getClientName(players.get(indexOfPlayer));
         String ownerName = GameUtility.getClientName(owner);
-        if (nextPlayer.equals(ownerName)) {
+        if (nextPlayer.equals(ownerName) && players.size() >= 2) {
             takeTurn();
             return;
         } else {
@@ -274,6 +280,10 @@ public class GameSetUp {
             out.writeUTF(createReturnMsg("You can not remove yourself from this game, since you are the owner. Wait until a new game has been started to try again."));
             return;
         }
+        if (clientSocket.equals(currentPlayer)) {
+            out.writeUTF(createReturnMsg("You can not remove yourself from this game, since it is your turn. Finish your turn and then leave."));
+            return;
+        }
 
         for (Socket player : players) {
             if (player.equals(clientSocket)) {
@@ -286,6 +296,10 @@ public class GameSetUp {
                 }
                 break;
             }
+        }
+
+        if (players.size() <= 1) {
+            ensureEnoughPlayersListener();
         }
     }
 

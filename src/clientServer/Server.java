@@ -98,7 +98,12 @@ public class Server {
                         handleGuess(clientName, outputStream, content, givenGameid, socket);
                         break;
                     case Constants.BURN:
-                        games.get(givenGameid).takeTurn();
+                        GameSetUp gameSetUp = games.get(givenGameid);
+                        if (gameSetUp.getCurrentPlayer().equals(socket)) {
+                            gameSetUp.takeTurn();
+                        } else {
+                            outputStream.writeUTF(createReturnMsg("It is not your turn - so you cannot burn it."));
+                        }
                         break;
                     case Constants.JOIN_GAME:
                         handleJoinGame(socket, playerName, outputStream, content);
@@ -106,6 +111,9 @@ public class Server {
                         break;
                     case Constants.ENABLE_SKETCH:
                         games.get(givenGameid).sketchHangManOnOf(socket);
+                        break;
+                    case Constants.LEAVE_GAME:
+                        games.get(givenGameid).removePlayer(socket);
                         break;
                     default:
                         // Client msg was not legal json
@@ -159,7 +167,7 @@ public class Server {
             outputStream.writeUTF(errorMsg("No game id provided"));
             return false;
         }
-        if (!games.containsKey(givenGameid) && !clientGame.containsKey(clientName)) { //TODO: Could ask if the given game id corresponds to what we have saved for secureity measure
+        if (!games.containsKey(givenGameid) && !clientGame.containsKey(clientName)) {
             outputStream.writeUTF(errorMsg("The gameId does not exist or you are not signed up to any game"));
             return false;
         }

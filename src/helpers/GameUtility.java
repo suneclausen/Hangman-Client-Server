@@ -7,6 +7,7 @@ public class GameUtility {
     public static String getClientName(Socket socket) {
         return getClientName(socket, "");
     }
+
     public static String getClientName(Socket socket, String playerName) {
         return socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + " " + playerName;
     }

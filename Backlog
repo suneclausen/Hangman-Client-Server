@@ -11,10 +11,6 @@ TODOS
 
 FÅ skrevet en README med instruktioner (skriv om tur, keywords, ny spil, forlad spil,
 
-FÅ fjernet brug af stopBuffer (den er grim)
-
-
-RELEASE
 Lav test af systemet der IKKE er på localhost.
 
 Betragt om server skal have stop-keyword (skal den nok ikke)

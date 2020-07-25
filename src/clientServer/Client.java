@@ -26,7 +26,8 @@ public class Client {
     private List<String> keysWithoutPayload = Arrays.asList(
             Constants.BURN,
             Constants.ENABLE_SKETCH,
-            Constants.GAMES
+            Constants.GAMES,
+            Constants.LEAVE_GAME
     );
 
     // constructor to put ip address and port
@@ -62,7 +63,7 @@ public class Client {
         // keep reading until "STOP" is input
         while (!Constants.STOP.equals(line)) {
             try {
-                line = input.readLine().trim(); //TODO; Handle bad input.
+                line = input.readLine().trim();
                 String[] split = line.split(";");
                 String msgType = split[0].trim().toUpperCase();
                 String content = "";
@@ -83,10 +84,10 @@ public class Client {
                         out.writeUTF(createPayload(Constants.GAMES, "", ""));
                         break;
                     case Constants.GUESS:
-                        if (GameUtility.checkInput(content.toUpperCase())) { //TODO; Maybe not have this logic here and go for an isolated bahaviour?
+                        if (GameUtility.checkInput(content)) {
                             out.writeUTF(createPayload(Constants.GUESS, content, currentGameId));
                         } else {
-                            System.out.println("ERROR: Wrongly formatted input");
+                            System.out.println(content + " is not a legal input. Legal inputs are of one of the following: [\"abcdefghijklmnopqrstuvwxyz\"]");
                         }
                         break;
                     case Constants.BURN:
@@ -101,6 +102,9 @@ public class Client {
                         if (currentGameId != null || !"".equals(currentGameId)) {
                             out.writeUTF(createPayload(Constants.ENABLE_SKETCH, "", currentGameId));
                         }
+                        break;
+                    case Constants.LEAVE_GAME:
+                        out.writeUTF(createPayload(Constants.LEAVE_GAME, "", currentGameId));
                         break;
                     default:
                         System.out.println("Not a keyword recognized by the system. Input was: " + line + "\nTry again with legal input ");
