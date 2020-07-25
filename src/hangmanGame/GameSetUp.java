@@ -39,7 +39,7 @@ public class GameSetUp {
 
         listenForIsGameDone(); //threaded
         ensureEnoughPlayersListener(); // threaded
-        startTurnsInGame(); // threaded
+        guessAndTurnListener(); // threaded
     }
 
     private void listenForIsGameDone() {
@@ -66,7 +66,7 @@ public class GameSetUp {
         isGameDoneThread.start();
     }
 
-    private void startTurnsInGame() {
+    private void guessAndTurnListener() {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -195,30 +195,6 @@ public class GameSetUp {
         newPlayer.start();
     }
 
-    public Socket getCurrentPlayer() {
-        return currentPlayer;
-    }
-
-    public String getLastGuessGiven() {
-        return lastGuessGiven;
-    }
-
-    public void setLastGuessGiven(String lastGuessGiven) {
-        this.lastGuessGiven = lastGuessGiven;
-    }
-
-    public ArrayList<Socket> getPlayers() {
-        return players;
-    }
-
-    public Hangman getGame() {
-        return game;
-    }
-
-    public String getGameId() {
-        return gameId;
-    }
-
     public void takeTurn() {
         if (players.size() <= 1) {
             //We are too few players so we should not do anything
@@ -312,5 +288,21 @@ public class GameSetUp {
         } else {
             out.writeUTF(createReturnMsg("Only the owner can enable and disable sketch in game."));
         }
+    }
+
+    public Socket getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public void setLastGuessGiven(String lastGuessGiven) {
+        this.lastGuessGiven = lastGuessGiven;
+    }
+
+    public ArrayList<Socket> getPlayers() {
+        return players;
+    }
+
+    public Hangman getGame() {
+        return game;
     }
 }

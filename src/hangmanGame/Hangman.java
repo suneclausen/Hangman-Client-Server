@@ -10,7 +10,6 @@ import java.util.TreeSet;
 public class Hangman {
     private static String[] sketch = initHangmanSketchArray();
 
-    private String owner;
     private String gameId;
     private String wordToGuess;
     private TreeSet<String> guessedLetters;
@@ -126,6 +125,80 @@ public class Hangman {
         System.out.println(hangmanPart);
     }
 
+    public void sketchHangManOnOf() {
+        this.isSketchEnabled = !this.isSketchEnabled;
+    }
+
+    public String handleGuess(String guessLetter) {
+        guessLetter = guessLetter.toUpperCase();
+
+        String sketchLine = "";
+        if (isSketchEnabled) {
+            sketchLine = sketch[8 - life];
+        }
+
+        // Check if letter belongs to word or if we have already seen it
+        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
+            life--;
+        }
+
+        guessedLetters.add(guessLetter);
+
+        // print line with correct letter embedded at right index
+        StringBuilder formattedGuessLine = new StringBuilder();
+        int bufferCounter = 0;
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            String letterInInitWord = wordToGuess.substring(i, i + 1);
+            if (guessedLetters.contains(letterInInitWord)) {
+                formattedGuessLine.append(" " + letterInInitWord + " ");
+                bufferCounter++;
+            } else if (letterInInitWord.contains("-")) {
+                formattedGuessLine.append(" - ");
+                bufferCounter++;
+            } else if (letterInInitWord.contains(" ")) {
+                formattedGuessLine.append("   ");
+                bufferCounter++;
+            } else {
+                formattedGuessLine.append(" _ ");
+            }
+        }
+
+        //Break if we have guessed the right word.
+        if (bufferCounter == wordToGuess.length()) {
+            return formattedGuessLine.toString() + "\n" + Constants.WIN_MSG;
+        }
+
+        // Check if letter belongs to word or if we have already seen it
+        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
+            life--;
+        }
+        guessedLetters.add(guessLetter);
+
+        // you are dead
+        if (life == 0) {
+            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess + "\n" + sketchLine;
+        }
+
+        return formattedGuessLine.toString() + "\n" +
+                "Already guessed letters: " +
+                guessedLetters.toString() + "\n" +
+                "Lives left: " + life + "\n" +
+                sketchLine;
+    }
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public TreeSet<String> getGuessedLetters() {
+        return guessedLetters;
+    }
+
+    public boolean isSketchEnabled() {
+        return isSketchEnabled;
+    }
+
+    // completed sketch
     //  _______
     //  |/      |
     //  |      (_)
@@ -219,108 +292,5 @@ public class Hangman {
         //     |
         //    _|___";
         return sketch;
-    }
-
-    public String getGameId() {
-        return gameId;
-    }
-
-    public int getLife() {
-        return life;
-    }
-
-    public void setLife(int life) {
-        this.life = life;
-    }
-
-    public String getWordToGuess() {
-        return wordToGuess;
-    }
-
-    public void setWordToGuess(String wordToGuess) {
-        this.wordToGuess = wordToGuess;
-    }
-
-    public TreeSet<String> getGuessedLetters() {
-        return guessedLetters;
-    }
-
-    public void setGuessedLetters(TreeSet<String> guessedLetters) {
-        this.guessedLetters = guessedLetters;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public boolean isSketchEnabled() {
-        return isSketchEnabled;
-    }
-
-    public void sketchHangManOnOf() {
-        this.isSketchEnabled = !this.isSketchEnabled;
-    }
-
-    public String handleGuess(String guessLetter) {
-        guessLetter = guessLetter.toUpperCase();
-
-        String sketchLine = "";
-        if (isSketchEnabled) {
-            sketchLine = sketch[8 - life];
-        }
-
-        // Check if letter belongs to word or if we have already seen it
-        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
-            life--;
-        }
-
-        guessedLetters.add(guessLetter);
-
-        // print line with correct letter embedded at right index
-        StringBuilder formattedGuessLine = new StringBuilder();
-        int bufferCounter = 0;
-        for (int i = 0; i < wordToGuess.length(); i++) {
-            String letterInInitWord = wordToGuess.substring(i, i + 1);
-            if (guessedLetters.contains(letterInInitWord)) {
-                formattedGuessLine.append(" " + letterInInitWord + " ");
-                bufferCounter++;
-            } else if (letterInInitWord.contains("-")) {
-                formattedGuessLine.append(" - ");
-                bufferCounter++;
-            } else if (letterInInitWord.contains(" ")) {
-                formattedGuessLine.append("   ");
-                bufferCounter++;
-            } else {
-                formattedGuessLine.append(" _ ");
-            }
-        }
-
-        //Break if we have guessed the right word.
-        if (bufferCounter == wordToGuess.length()) {
-            return formattedGuessLine.toString() + "\n" + Constants.WIN_MSG;
-        }
-
-        // Check if letter belongs to word or if we have already seen it
-        if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
-            life--;
-        }
-        guessedLetters.add(guessLetter);
-
-
-        // you are dead
-        if (life == 0) {
-            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess + "\n" + sketchLine;
-        }
-
-
-        return formattedGuessLine.toString() + "\n" +
-                "Already guessed letters: " +
-                guessedLetters.toString() + "\n" +
-                "Lives left: " + life + "\n" +
-                sketchLine;
     }
 }
