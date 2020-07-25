@@ -1,7 +1,7 @@
 package hangmanGame;
 
-import helpers.GameUtility;
 import helpers.Constants;
+import helpers.GameUtility;
 
 import javax.json.Json;
 import java.io.DataOutputStream;
@@ -31,11 +31,11 @@ public class GameSetUp {
         this.owner = owner;
         this.currentPlayer = owner;
         this.gameId = game.getGameId();
-        players.add(owner);
-        lastGuessGiven = "";
-        isGameDone = false;
-        stopBuffer = true;
-        playerNames.put(owner, nameOfOwner);
+        this.players.add(owner);
+        this.lastGuessGiven = "";
+        this.isGameDone = false;
+        this.stopBuffer = true;
+        this.playerNames.put(owner, nameOfOwner);
 
         listenForIsGameDone(); //threaded
         controlTurnsListener(); // threaded
@@ -141,7 +141,6 @@ public class GameSetUp {
                         try {
                             DataOutputStream o = new DataOutputStream(currentPlayer.getOutputStream());
                             o.writeUTF(createReturnMsg("Ready to play. We are now to players of: " + players.stream().map(GameUtility::getClientName).collect(Collectors.toList())));
-
                             takeTurn();
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -149,13 +148,12 @@ public class GameSetUp {
                         break;
                     }
                 }
-
             }
         });
         controlTurns.start();
     }
 
-    public synchronized void startNewGame(String gameWord) { //TODO: Er ret sikker på dette skal være synchronized
+    public synchronized void startNewGame(String gameWord) {
         game = new Hangman(gameWord);
         lastGuessGiven = "";
         isGameDone = false;
@@ -238,7 +236,10 @@ public class GameSetUp {
             currentPlayer = players.get(indexOfPlayer);
         }
 
-        //TODO: Make it a method
+        announceTurnToAll();
+    }
+
+    private void announceTurnToAll() {
         String name = playerNames.getOrDefault(currentPlayer, "");
         String currentPlayerName = GameUtility.getClientName(currentPlayer, name);
         DataOutputStream out;
@@ -285,6 +286,17 @@ public class GameSetUp {
                 }
                 break;
             }
+        }
+    }
+
+    public void sketchHangManOnOf(Socket socket) throws IOException {
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        if (socket.equals(owner)) {
+            game.sketchHangManOnOf();
+            boolean sketchEnabled = game.isSketchEnabled();
+            out.writeUTF(createReturnMsg("Sketch for game: " + gameId + " is enabled:" + sketchEnabled));
+        } else {
+            out.writeUTF(createReturnMsg("Only the owner can enable and disable sketch in game."));
         }
     }
 }

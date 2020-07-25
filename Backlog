@@ -12,30 +12,26 @@ Håndter at alle undtagen 1 spiller forsvinder (ikke en prioritet)
 
 
 TODOS
-Lav test af systemet der IKKE er på localhost.
 
-Overvej at få sketch af hangman med
-
-Ændre projekt strukturen (Lav prioritet)
+FIx keywords der ikke skal bruge content, men bare er kommandoer der skal gøre noget. (e.g. GAMES, BURN etc)
 
 FÅ skrevet en README med instruktioner (skriv om tur, keywords, ny spil, forlad spil,
 
 
+FÅ fjernet brug af stopBuffer (den er grim)
+
 RELEASE
+Lav test af systemet der IKKE er på localhost.
 
 Betragt om server skal have stop-keyword (skal den nok ikke)
 
 Overvej om clientGames kan fjernes. Den virker ikke særlig vigtig for server.java
-
-FÅ fjernet brug af stopBuffer (den er grim)
 
 Få gennemgået hvor vigtigt det er de få steder der er brugt synchronized
 
 Hvad sker der hvis en owner af et GameSetup leaver spillet. Løs de mulige problemer der gives fra dette
 
 Lav observer pattern på hvis tur det er, så gameSetUp skal fungere som observer der holder styr på spillets tilstand og lad den fortælle de forskellige klienter i et spil hvis noget ændres.
-
-FIx keywords der ikke skal brge content, men bare er kommandoer der skal gøre noget. (e.g. GAMES, BURN etc)
 
 Overvej at gå helt væk fra det med sleep() (det er aldrig en god løsning) Kig på atomicReferences
 https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicReference.html

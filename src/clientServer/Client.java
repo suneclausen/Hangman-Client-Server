@@ -1,6 +1,7 @@
 package clientServer;
 // A Java program for a Client
 
+import com.sun.org.apache.bcel.internal.classfile.ConstantString;
 import helpers.Constants;
 import helpers.GameUtility;
 import org.json.JSONObject;
@@ -85,6 +86,11 @@ public class Client {
                     case Constants.JOIN_GAME:
                         String gameId = content;
                         out.writeUTF(createPayload(Constants.JOIN_GAME, gameId, ""));
+                        break;
+                    case Constants.ENABLE_SKETCH:
+                        if (currentGameId != null || !"".equals(currentGameId)){
+                            out.writeUTF(createPayload(Constants.ENABLE_SKETCH, "", currentGameId));
+                        }
                         break;
                     default:
                         System.out.println("Not a keyword recognized by the system. Input was: " + line + "\nTry again with legal input ");

@@ -15,6 +15,8 @@ public class Hangman {
     private String wordToGuess;
     private TreeSet<String> guessedLetters;
     private int life = 8;
+    private boolean isSketchEnabled = false;
+
 
     public Hangman(String wordToGuess) {
         this.wordToGuess = wordToGuess.toUpperCase();
@@ -255,8 +257,21 @@ public class Hangman {
         this.owner = owner;
     }
 
+    public boolean isSketchEnabled() {
+        return isSketchEnabled;
+    }
+
+    public void sketchHangManOnOf() {
+        this.isSketchEnabled = !this.isSketchEnabled;
+    }
+
     public String handleGuess(String guessLetter) {
         guessLetter = guessLetter.toUpperCase();
+
+        String sketchLine = "";
+        if (isSketchEnabled){
+            sketchLine = sketch[8 - life];
+        }
 
         // Check if letter belongs to word or if we have already seen it
         if (!wordToGuess.contains(guessLetter) && !guessedLetters.contains(guessLetter)) {
@@ -298,11 +313,14 @@ public class Hangman {
 
         // you are dead
         if (life == 0) {
-            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess;
+            return Constants.LOSE_MSG + "\n" + "The correct word was: " + wordToGuess +"\n" + sketchLine;
         }
+
+
         return formattedGuessLine.toString() + "\n" +
                 "Already guessed letters: " +
                 guessedLetters.toString() + "\n" +
-                "Lives left: " + life;
+                "Lives left: " + life + "\n" +
+                sketchLine;
     }
 }

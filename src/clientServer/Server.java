@@ -104,6 +104,9 @@ public class Server {
                         handleJoinGame(socket, playerName, outputStream, content);
                         getGamesOverview(outputStream);
                         break;
+                    case Constants.ENABLE_SKETCH:
+                        games.get(givenGameid).sketchHangManOnOf(socket);
+                        break;
                     default:
                         // Client msg was not legal json
                         outputStream.writeUTF(errorMsg("Did not receive legal or usefull JSON: " + line));
