@@ -24,7 +24,7 @@ public class GameSetUp {
     private int numberOfLives = 8;
     private HashMap<Socket, String> playerNames = new HashMap<>();
 
-    public GameSetUp(Hangman game, Socket owner) {
+    public GameSetUp(Hangman game, Socket owner, String nameOfOwner) {
         this.game = game;
         this.players = new ArrayList<>();
         this.turnCounter = 0;
@@ -35,6 +35,7 @@ public class GameSetUp {
         lastGuessGiven = "";
         isGameDone = false;
         stopBuffer = true;
+        playerNames.put(owner, nameOfOwner);
 
         listenForIsGameDone(); //threaded
         controlTurnsListener(); // threaded
@@ -50,7 +51,7 @@ public class GameSetUp {
                     try {
                         Thread.sleep(100);
                         if (isGameDone && stopBuffer) {
-                            owner = currentPlayer; //TODO: make logic that takes turn. Kan gøres ved at finde index på owner sætte turncounter på denne og så tage en tur. Det vil tage den næste
+                            owner = currentPlayer;
                             DataOutputStream out = new DataOutputStream(owner.getOutputStream());
                             out.writeUTF(createReturnMsg("\n!!! You are now the owner of the game: " + gameId + " so send NEW_WORD;[word] to the server with word being your chosen word !!!"));
                             stopBuffer = false;
@@ -162,11 +163,12 @@ public class GameSetUp {
         takeTurn();
     }
 
-    public void addPlayer(Socket player) {
+    public void addPlayer(Socket player, String playerName) {
+        playerNames.put(player, playerName);
         Thread newPlayer = new Thread(new Runnable() {
             @Override
             public void run() {
-                String newPlayerName = GameUtility.getClientName(player);
+                String newPlayerName = GameUtility.getClientName(player, playerName);
                 DataOutputStream out;
                 try {
                     for (Socket socket : players) {
@@ -186,7 +188,6 @@ public class GameSetUp {
                 }
             }
         });
-//        newPlayer.setPriority(Thread.MAX_PRIORITY);
         newPlayer.start();
     }
 
@@ -217,7 +218,13 @@ public class GameSetUp {
     public void takeTurn() {
         if (players.size() <= 1) {
             //We are too few players so we should not do anything
-            return; //TODO: some error handling?
+            try {
+                DataOutputStream out = new DataOutputStream(owner.getOutputStream());
+                out.writeUTF(createReturnMsg("We are only one player so we cannot take any turns"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
         }
 
         turnCounter++;
@@ -232,12 +239,13 @@ public class GameSetUp {
         }
 
         //TODO: Make it a method
-        String currentPlayerName = GameUtility.getClientName(currentPlayer);
+        String name = playerNames.getOrDefault(currentPlayer, "");
+        String currentPlayerName = GameUtility.getClientName(currentPlayer, name);
         DataOutputStream out;
         for (Socket player : players) {
             try {
                 out = new DataOutputStream(player.getOutputStream());
-                if (GameUtility.getClientName(player).equals(currentPlayerName)) {
+                if (player.equals(currentPlayer)) {
                     if (!isGameDone) {
                         out.writeUTF(createReturnMsg("Your turn"));
                     }
@@ -257,15 +265,26 @@ public class GameSetUp {
                 .toString();
     }
 
-    public synchronized void removePlayer(String clientName) {
+    public synchronized void removePlayer(Socket clientSocket) throws IOException {
+        DataOutputStream out;
+        out = new DataOutputStream(clientSocket.getOutputStream());
+
+        if (clientSocket.equals(owner)) {
+            out.writeUTF(createReturnMsg("You can not remove yourself from this game, since you are the owner. Wait until a new game has been started to try again."));
+            return;
+        }
+
         for (Socket player : players) {
-            String playerName = GameUtility.getClientName(player);
-            if (playerName.equals(clientName)) {
+            if (player.equals(clientSocket)) {
                 players.remove(player);
                 playerNames.remove(player);
+                try {
+                    out.writeUTF(createReturnMsg("You have been removed from the game: " + gameId + " and will no longer get status or information from this game."));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             }
         }
-
     }
 }

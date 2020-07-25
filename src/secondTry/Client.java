@@ -39,10 +39,10 @@ public class Client {
 
     public static void main(String args[]) {
         String playerName = "";
-//        try {
-//            playerName = args[0];
-//        }catch (Exception e){
-//        } TODO: This is not supported on server yet. When it is we can use this.
+        try {
+            playerName = args[0];
+        }catch (Exception e){
+        }
 
         Client client = new Client("127.0.0.1", 5000, playerName);
     }
@@ -134,7 +134,7 @@ public class Client {
 
     private void setUpConnectionToServer(String address, int port, String playerName) throws IOException {
         socket = new Socket(address, port);
-        System.out.println("Client: " + GameUtility.getClientName(socket) + " is connected");
+        System.out.println("Client: " + GameUtility.getClientName(socket, playerName) + " is connected");
 
         // takes input from terminal
         input = new DataInputStream(System.in);

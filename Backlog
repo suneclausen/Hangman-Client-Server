@@ -12,8 +12,7 @@ Håndter at alle undtagen 1 spiller forsvinder (ikke en prioritet)
 
 
 TODOS
-
-Få implementeret navn i systemet
+Lav test af systemet der IKKE er på localhost.
 
 Overvej at få sketch af hangman med
 
@@ -21,13 +20,12 @@ Overvej at få sketch af hangman med
 
 FÅ skrevet en README med instruktioner (skriv om tur, keywords, ny spil, forlad spil,
 
-Betragt om server skal have stop-keyword
 
 RELEASE
 
-Overvej om clientGames kan fjernes. Den virker ikke særlig vigtig for server.java
+Betragt om server skal have stop-keyword (skal den nok ikke)
 
-Understøt logik for at joine nyt spil, mens man allerede er i gang med et
+Overvej om clientGames kan fjernes. Den virker ikke særlig vigtig for server.java
 
 FÅ fjernet brug af stopBuffer (den er grim)
 
