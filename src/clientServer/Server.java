@@ -1,8 +1,9 @@
-package secondTry;
+package clientServer;
 // A Java program for a Server
 
 import hangmanGame.GameSetUp;
 import hangmanGame.Hangman;
+import helpers.Constants;
 import helpers.GameUtility;
 import org.json.JSONObject;
 

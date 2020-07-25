@@ -1,6 +1,7 @@
-package secondTry;
+package clientServer;
 // A Java program for a Client
 
+import helpers.Constants;
 import helpers.GameUtility;
 import org.json.JSONObject;
 

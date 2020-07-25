@@ -1,7 +1,7 @@
 package hangmanGame;
 
 import helpers.GameUtility;
-import secondTry.Constants;
+import helpers.Constants;
 
 import javax.json.Json;
 import java.io.DataOutputStream;

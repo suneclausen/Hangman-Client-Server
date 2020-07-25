@@ -1,4 +1,4 @@
-package secondTry;
+package helpers;
 
 public class Constants {
     public static final String START_GAME = "START_GAME";

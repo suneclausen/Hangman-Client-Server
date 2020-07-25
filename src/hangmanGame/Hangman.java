@@ -1,7 +1,7 @@
 package hangmanGame;
 
 import helpers.GameUtility;
-import secondTry.Constants;
+import helpers.Constants;
 
 import java.io.Console;
 import java.util.Scanner;
