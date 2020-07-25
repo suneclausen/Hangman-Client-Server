@@ -1,11 +1,7 @@
 
 BUGS:
-Ryd op i koden. Den er ikke for god lige nu.
 
 Få spillet printet i første rudne for alle (inden der er afgivet gæt)
-
-
-tilføj et gametag så personen er nemmere at genkende
 
 Håndter at alle undtagen 1 spiller forsvinder (ikke en prioritet)
     - Kan gøres ved at lave en boolsk variable der sættes i takt med at folk removes og så vil der i controlTurnsListener tændes for den og den vil tjekke. Kunne være godt hvis den kunne locke!
@@ -13,12 +9,10 @@ Håndter at alle undtagen 1 spiller forsvinder (ikke en prioritet)
 
 TODOS
 
-FIx keywords der ikke skal bruge content, men bare er kommandoer der skal gøre noget. (e.g. GAMES, BURN etc)
-
 FÅ skrevet en README med instruktioner (skriv om tur, keywords, ny spil, forlad spil,
 
-
 FÅ fjernet brug af stopBuffer (den er grim)
+
 
 RELEASE
 Lav test af systemet der IKKE er på localhost.

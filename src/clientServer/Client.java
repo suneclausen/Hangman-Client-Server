@@ -1,7 +1,6 @@
 package clientServer;
 // A Java program for a Client
 
-import com.sun.org.apache.bcel.internal.classfile.ConstantString;
 import helpers.Constants;
 import helpers.GameUtility;
 import org.json.JSONObject;
@@ -11,6 +10,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 
 public class Client {
     // initialize socket and input output streams
@@ -22,6 +23,11 @@ public class Client {
     private boolean isStopMsgSent;
     private String currentGameId;
     private String playerName;
+    private List<String> keysWithoutPayload = Arrays.asList(
+            Constants.BURN,
+            Constants.ENABLE_SKETCH,
+            Constants.GAMES
+    );
 
     // constructor to put ip address and port
     public Client(String address, int port, String playerName) {
@@ -43,7 +49,7 @@ public class Client {
         String playerName = "";
         try {
             playerName = args[0];
-        }catch (Exception e){
+        } catch (Exception e) {
         }
 
         Client client = new Client("127.0.0.1", 5000, playerName);
@@ -59,8 +65,12 @@ public class Client {
                 line = input.readLine().trim(); //TODO; Handle bad input.
                 String[] split = line.split(";");
                 String msgType = split[0].trim().toUpperCase();
-                String content = split[1].trim();
-                content = Constants.JOIN_GAME.equals(msgType) ? content  : content.toUpperCase();
+                String content = "";
+                if (!keysWithoutPayload.contains(msgType)) {
+                    // Only read content if it is a msgType that needs to use the payload
+                    content = split[1].trim();
+                    content = Constants.JOIN_GAME.equals(msgType) ? content : content.toUpperCase(); // only have original case for gameids - the rest is uppercase
+                }
 
                 switch (msgType.trim()) {
                     case Constants.START_GAME:
@@ -70,7 +80,7 @@ public class Client {
                         out.writeUTF(createPayload(Constants.NEW_WORD, content, currentGameId));
                         break;
                     case Constants.GAMES:
-                        out.writeUTF(createPayload(Constants.GAMES, content, ""));
+                        out.writeUTF(createPayload(Constants.GAMES, "", ""));
                         break;
                     case Constants.GUESS:
                         if (GameUtility.checkInput(content.toUpperCase())) { //TODO; Maybe not have this logic here and go for an isolated bahaviour?
@@ -88,7 +98,7 @@ public class Client {
                         out.writeUTF(createPayload(Constants.JOIN_GAME, gameId, ""));
                         break;
                     case Constants.ENABLE_SKETCH:
-                        if (currentGameId != null || !"".equals(currentGameId)){
+                        if (currentGameId != null || !"".equals(currentGameId)) {
                             out.writeUTF(createPayload(Constants.ENABLE_SKETCH, "", currentGameId));
                         }
                         break;
